@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create *)",
+      "Bash(npx --yes create-vite@latest . --template react-ts --force)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(cp \"C:/Users/USER/Downloads/rma-logo-new-BAhYomm-.jpg\" \"C:/Users/USER/PRICE OFFER AI/public/rma-logo.jpg\")",
+      "Bash(cp \"C:/Users/USER/Downloads/Unified Logo with Subtle Crane Integration.png\" \"C:/Users/USER/PRICE OFFER AI/public/rma-banner.png\")",
+      "Bash(npx tsc *)",
+      "Bash(curl -s http://localhost:5173/)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
+    ]
+  }
+}
