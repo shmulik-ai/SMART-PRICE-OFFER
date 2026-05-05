@@ -91,11 +91,20 @@ export default function App() {
 
           {/* Brand */}
           <div className={`flex items-center gap-4 ${rtl ? 'flex-row-reverse' : ''}`}>
-            <div style={{ position: 'relative' }}>
-              <img src="/rma-logo.jpg" alt="RMA Cranes"
-                className="h-11 w-11 object-cover rounded-lg"
-                style={{ border: '2px solid #b8922a' }} />
-            </div>
+<div style={{
+                width: 44, height: 44, borderRadius: 8,
+                background: '#0f2744',
+                border: '2px solid #b8922a',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                overflow: 'hidden', flexShrink: 0
+              }}>
+                <svg viewBox="0 0 44 44" width="44" height="44" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="44" height="44" fill="#0f2744"/>
+                  <rect x="19" y="5" width="6" height="26" rx="2" fill="white"/>
+                  <rect x="7" y="5" width="30" height="6" rx="2" fill="#d4a847"/>
+                  <rect x="6" y="33" width="14" height="3" rx="1.5" fill="#d4a847" opacity="0.8"/>
+                </svg>
+              </div>
             <div>
               <div className="text-white font-bold text-lg leading-tight tracking-tight">RMA Cranes</div>
               <div className="text-xs leading-tight" style={{ color: '#d4a847' }}>{tr.appSub}</div>
