@@ -3,15 +3,79 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   body {
     font-family: 'Inter', system-ui, sans-serif;
-    @apply bg-slate-100 text-slate-800;
+    @apply text-slate-800;
+    background:
+      radial-gradient(1200px 600px at 100% -10%, rgba(212, 168, 71, 0.08), transparent 60%),
+      radial-gradient(1000px 600px at -10% 110%, rgba(15, 39, 68, 0.07), transparent 60%),
+      linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  *:focus-visible {
+    outline: none;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/85 backdrop-blur-md border border-slate-200/70 shadow-soft;
+  }
+
+  .btn-gold {
+    background: linear-gradient(135deg, #b8922a 0%, #d4a847 50%, #b8922a 100%);
+    background-size: 200% 100%;
+    transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .btn-gold:hover {
+    background-position: 100% 0;
+    transform: translateY(-1px);
+    box-shadow: 0 14px 28px -10px rgba(184, 146, 42, 0.55);
+  }
+
+  .btn-navy {
+    background: linear-gradient(135deg, #0f2744 0%, #1a3a5c 100%);
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .btn-navy:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 28px -10px rgba(15, 39, 68, 0.55);
+  }
+
+  .section-card {
+    @apply bg-white rounded-2xl border border-slate-100 shadow-soft;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+  }
+  .section-card:hover {
+    box-shadow: 0 12px 36px -10px rgba(15, 39, 68, 0.12);
+  }
+
+  .gold-divider {
+    background: linear-gradient(90deg, transparent, #d4a847, transparent);
   }
 }
 
 @layer utilities {
   .print-area {
     background: white;
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #b8922a 0%, #d4a847 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .ring-brand {
+    box-shadow: 0 0 0 3px rgba(212, 168, 71, 0.25);
   }
 }
 

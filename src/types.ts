@@ -3,6 +3,11 @@ export interface MastSection {
   quantity: string;
 }
 
+export interface OtherExpense {
+  description: string;
+  amount: string;
+}
+
 export interface QuotationData {
   // Meta
   quoteNumber: string;
@@ -13,6 +18,7 @@ export interface QuotationData {
   companyLogo: string;
 
   // Client
+  preparedFor: string;
   clientCompany: string;
   clientContact: string;
   clientAddress: string;
@@ -22,6 +28,8 @@ export interface QuotationData {
   clientEmail: string;
 
   // Section 1 - Crane Technical Specs
+  manufacturer: string;
+  serialNumber: string;
   craneModel: string;
   manufacturingYear: string;
   jibLength: string;
@@ -29,12 +37,12 @@ export interface QuotationData {
   mastSections: MastSection[];
   cabinType: string;
   maxLoadCapacity: string;
-  maxHookHeight: string;
+  tipLoadCapacity: string;
 
-  // Section 2 - Electrical & Mechanical
-  hoistingSpeed: string;
-  slewingSpeed: string;
-  trolleySpeed: string;
+  // Section 2 - Winch Types
+  hoistWinch: string;
+  trolleyWinch: string;
+  trolleyType: string;
 
   // Section 3 - Condition & Extras
   craneCondition: string;
@@ -45,7 +53,7 @@ export interface QuotationData {
   deliveryTime: string;
   warranty: string;
 
-  // Notes (before pricing)
+  // Notes
   notes: string;
 
   // Section 4 - Pricing
@@ -56,16 +64,20 @@ export interface QuotationData {
   taxPercent: string;
   shippingCost: string;
   paymentTerms: string;
+
+  // Section 5 - Other Expenses (dynamic, each adds to total)
+  otherExpenses: OtherExpense[];
 }
 
 export const defaultData: QuotationData = {
-  quoteNumber: `QT-${new Date().getFullYear()}-001`,
+  quoteNumber: `QT-${new Date().getFullYear()}-002`,
   quoteDate: new Date().toISOString().split('T')[0],
   validUntil: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
   salesRep: '',
   companyName: 'RMA Cranes',
   companyLogo: '',
 
+  preparedFor: '',
   clientCompany: '',
   clientContact: '',
   clientAddress: '',
@@ -74,18 +86,20 @@ export const defaultData: QuotationData = {
   clientPhone: '',
   clientEmail: '',
 
-  craneModel: '',
-  manufacturingYear: '',
+  manufacturer: 'POTAIN',
+  serialNumber: '',
+  craneModel: 'MDT219',
+  manufacturingYear: '2018',
   jibLength: '',
-  freestandingHeight: '',
-  mastSections: [{ type: '', quantity: '' }],
+  freestandingHeight: '50',
+  mastSections: [],
   cabinType: '',
   maxLoadCapacity: '',
-  maxHookHeight: '',
+  tipLoadCapacity: '',
 
-  hoistingSpeed: '',
-  slewingSpeed: '',
-  trolleySpeed: '',
+  hoistWinch: '',
+  trolleyWinch: '',
+  trolleyType: 'SM/DM',
 
   craneCondition: '',
   certifications: '',
@@ -97,11 +111,13 @@ export const defaultData: QuotationData = {
 
   notes: '',
 
-  currency: 'USD',
-  unitPrice: '',
+  currency: 'EUR',
+  unitPrice: '211000',
   quantity: '1',
   discountPercent: '0',
-  taxPercent: '0',
-  shippingCost: '0',
+  taxPercent: '18',
+  shippingCost: '25000',
   paymentTerms: '',
+
+  otherExpenses: [],
 };
