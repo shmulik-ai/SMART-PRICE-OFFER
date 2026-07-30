@@ -1,44 +1,82 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { FileDown, Eye, Edit3, RefreshCw, Globe2 } from 'lucide-react';
+import { FileDown, Eye, Edit3, RefreshCw, Globe2, FilePlus, Save } from 'lucide-react';
 import QuotationForm from './components/QuotationForm';
 import QuotationPreview from './components/QuotationPreview';
 import { QuotationData, defaultData } from './types';
+import QuoteHistoryPanel, { addToHistory, HISTORY_KEY } from './components/QuoteHistoryPanel';
+import { History } from 'lucide-react';
 import { Lang, t } from './i18n';
 
-type Tab = 'form' | 'preview';
+type Tab = 'form' | 'preview' | 'history';
 
 const RMA_LOGO_URL = `${import.meta.env.BASE_URL}rma-logo.jpg`;
 
 // Compact single-page PDF export
 async function exportPDF(element: HTMLDivElement, filename: string) {
-  const { default: html2canvas } = await import('html2canvas');
-  const { default: jsPDF }       = await import('jspdf');
+  if (!element) throw new Error('Preview element not found');
 
-  const canvas = await html2canvas(element, {
-    scale: 1.5, useCORS: true, logging: false, backgroundColor: '#ffffff',
+  const html2canvasModule = await import('html2canvas');
+  const html2canvas = html2canvasModule.default ?? html2canvasModule;
+
+  const jspdfModule = await import('jspdf');
+  const jsPDF = jspdfModule.jsPDF ?? jspdfModule.default ?? (jspdfModule as any).default;
+
+  // Render at scale 2 for crisp output
+  const canvas = await (html2canvas as any)(element, {
+    scale: 2,
+    useCORS: true,
+    allowTaint: true,
+    logging: false,
+    backgroundColor: '#ffffff',
+    removeContainer: true,
   });
 
-  const imgData = canvas.toDataURL('image/jpeg', 0.82);
-  const pw      = 210;                              // A4 width  (mm)
-  const pageH   = 297;                              // A4 height (mm)
-  const ph      = (canvas.height * pw) / canvas.width; // image height if drawn full width
+  const pw     = 210;   // A4 width  mm
+  const pageH  = 297;   // A4 height mm
 
-  const pdf = new jsPDF({
+  // How many mm per canvas pixel (width axis)
+  const mmPerPx = pw / canvas.width;
+  // Full content height in mm
+  const contentH = canvas.height * mmPerPx;
+  // How many pixels fit in one A4 page
+  const pageHeightPx = pageH / mmPerPx;
+
+  const pdf = new (jsPDF as any)({
     orientation: 'portrait', unit: 'mm', format: 'a4', compress: true,
   });
 
-  if (ph <= pageH) {
-    // Fits naturally - draw at top, no second page
-    pdf.addImage(imgData, 'JPEG', 0, 0, pw, ph, undefined, 'FAST');
-  } else {
-    // Overflows - shrink to fit one page (preserve aspect ratio, center horizontally)
-    const scale   = pageH / ph;
-    const scaledW = pw * scale;
-    const xOff    = (pw - scaledW) / 2;
-    pdf.addImage(imgData, 'JPEG', xOff, 0, scaledW, pageH, undefined, 'FAST');
+  const totalPages = Math.ceil(contentH / pageH);
+
+  for (let page = 0; page < totalPages; page++) {
+    if (page > 0) pdf.addPage();
+
+    const srcY      = Math.round(page * pageHeightPx);
+    const sliceH    = Math.min(pageHeightPx, canvas.height - srcY);
+    const sliceHmm  = sliceH * mmPerPx;
+
+    // Create a one-page-tall slice canvas
+    const slice     = document.createElement('canvas');
+    slice.width     = canvas.width;
+    slice.height    = Math.ceil(sliceH);
+    const ctx       = slice.getContext('2d')!;
+    ctx.fillStyle   = '#ffffff';
+    ctx.fillRect(0, 0, slice.width, slice.height);
+    ctx.drawImage(canvas, 0, -srcY);
+
+    const imgData = slice.toDataURL('image/png');
+    pdf.addImage(imgData, 'PNG', 0, 0, pw, sliceHmm, undefined, 'FAST');
   }
 
-  pdf.save(filename);
+  // Download via blob URL
+  const blob = pdf.output('blob');
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
 function PageCrane() {
@@ -70,7 +108,12 @@ function loadFromStorage(): QuotationData {
     if (!raw) return defaultData;
     const parsed = JSON.parse(raw);
     // Merge with defaults so newly added fields don't break old saved data
-    return { ...defaultData, ...parsed };
+    const merged = { ...defaultData, ...parsed };
+    // If saved logo is a corrupted/truncated base64, clear it so the default logo shows
+    if (merged.companyLogo && !merged.companyLogo.startsWith('data:image/') && !merged.companyLogo.startsWith('http') && !merged.companyLogo.startsWith('/')) {
+      merged.companyLogo = '';
+    }
+    return merged;
   } catch {
     return defaultData;
   }
@@ -95,12 +138,38 @@ export default function App() {
   const tr  = t[lang];
   const rtl = lang === 'he';
 
+  const handleNewQuote = () => {
+    if (!confirm(tr.newQuoteConfirm)) return;
+    // Save current quote to history before clearing
+    if (data.quoteNumber || data.clientCompany) addToHistory(data);
+    const year = new Date().getFullYear();
+    const num  = String(Math.floor(Math.random() * 900) + 100);
+    const fresh = { ...defaultData, quoteNumber: `QT-${year}-${num}` };
+    localStorage.removeItem(STORAGE_KEY);
+    setData(fresh);
+    setTab('form');
+  };
+
+  const [savedFlash, setSavedFlash] = React.useState(false);
+
+  const handleSave = () => {
+    addToHistory(data);
+    setSavedFlash(true);
+    setTimeout(() => setSavedFlash(false), 1800);
+  };
+
   const handleExport = async () => {
     setTab('preview');
     setExport(true);
-    await new Promise(r => setTimeout(r, 400));
+    // Give React time to mount the preview and paint it
+    await new Promise(r => setTimeout(r, 700));
     try {
+      addToHistory(data);
       await exportPDF(previewRef.current, `Quote-${data.quoteNumber || 'draft'}.pdf`);
+    } catch (err) {
+      console.error('PDF export failed:', err);
+      // Fallback: open print dialog
+      window.print();
     } finally {
       setExport(false);
     }
@@ -163,6 +232,14 @@ export default function App() {
             </button>
 
             <button
+              onClick={handleNewQuote}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg font-bold transition"
+              style={{ color: '#d4a847', border: '1px solid rgba(212,168,71,0.35)', background: 'rgba(212,168,71,0.08)' }}
+            >
+              <FilePlus size={13} /> {tr.newQuote}
+            </button>
+
+            <button
               onClick={() => { if (confirm(rtl ? 'לאפס את כל השדות לתבנית המקורית?' : 'Reset all fields to original template?')) { localStorage.removeItem(STORAGE_KEY); setData(defaultData); } }}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition text-white/50 hover:text-white hover:bg-white/5"
             >
@@ -178,6 +255,14 @@ export default function App() {
             </button>
 
             <button
+              onClick={handleSave}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg font-bold transition"
+              style={{ color: savedFlash ? '#16a34a' : '#d4a847', border: `1px solid ${savedFlash ? 'rgba(22,163,74,0.4)' : 'rgba(212,168,71,0.35)'}`, background: savedFlash ? 'rgba(22,163,74,0.1)' : 'rgba(212,168,71,0.08)' }}
+            >
+              <Save size={13} /> {savedFlash ? (rtl ? '✓ נשמר' : '✓ Saved') : (rtl ? 'שמור הצעה' : 'Save')}
+            </button>
+
+            <button
               onClick={handleExport}
               disabled={exporting}
               className="btn-gold flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-lg shadow-brand text-white disabled:opacity-60"
@@ -189,17 +274,21 @@ export default function App() {
         </div>
 
         <div className="max-w-screen-xl mx-auto px-6 flex border-t border-white/5">
-          {(['form', 'preview'] as Tab[]).map(t2 => (
+          {([
+            { key: 'form',    label: `> ${tr.form}` },
+            { key: 'preview', label: `[ ${tr.preview} ]` },
+            { key: 'history', label: rtl ? '⏱ הצעות קודמות' : '⏱ History' },
+          ] as { key: Tab; label: string }[]).map(({ key, label }) => (
             <button
-              key={t2}
-              onClick={() => setTab(t2)}
+              key={key}
+              onClick={() => setTab(key)}
               className={`px-5 py-2.5 text-xs font-bold tracking-widest uppercase transition border-b-2 ${
-                tab === t2
+                tab === key
                   ? 'border-brand-500 text-brand-400'
                   : 'border-transparent text-white/40 hover:text-white/80'
               }`}
             >
-              {t2 === 'form' ? `> ${tr.form}` : `[ ${tr.preview} ]`}
+              {label}
             </button>
           ))}
         </div>
@@ -259,6 +348,14 @@ export default function App() {
                 {exporting ? tr.generating : tr.exportPdf}
               </button>
             </div>
+          </div>
+        ) : tab === 'history' ? (
+          <div className="animate-fade-in">
+            <QuoteHistoryPanel
+              tr={tr}
+              rtl={rtl}
+              onLoad={(q) => { setData(q); setTab('form'); }}
+            />
           </div>
         ) : (
           <div className="flex flex-col items-center gap-6 animate-fade-in">

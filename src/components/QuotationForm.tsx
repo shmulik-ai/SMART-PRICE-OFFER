@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import {
   User, Cpu, Cog, Package, DollarSign, Hash,
-  FileText, X, ImageIcon, CheckCircle2, Sparkles,
+  FileText, X, ImageIcon, CheckCircle2, Sparkles, Plus, Trash2,
 } from 'lucide-react';
 import FormSection from './FormSection';
 import Field from './Field';
@@ -81,6 +81,7 @@ const trolleyTypeOptions = [
         <Field label={tr.quoteNumber}     type="text" value={val('quoteNumber')} onChange={set('quoteNumber')} required placeholder="QT-2025-001" rtl={rtl} />
         <Field label={tr.quoteDate}       type="date" value={val('quoteDate')}   onChange={set('quoteDate')}   required rtl={rtl} />
         <Field label={tr.validUntilField} type="date" value={val('validUntil')}  onChange={set('validUntil')}  required rtl={rtl} />
+        <Field label={tr.quoteValidity}   type="text" value={val('quoteValidity')} onChange={set('quoteValidity')} rtl={rtl} placeholder="לדוגמה: 30 יום, 45 ימים..." />
         <Field label={tr.salesRepField}   type="text" value={val('salesRep')}    onChange={set('salesRep')}    rtl={rtl} />
         <Field label={tr.companyName}     type="text" value={val('companyName')} onChange={set('companyName')} required span rtl={rtl} placeholder="RMA Cranes Ltd." />
 
@@ -97,7 +98,8 @@ const trolleyTypeOptions = [
             } ${rtl ? 'flex-row-reverse' : ''}`}
           >
             <div className="shrink-0 grid place-items-center bg-white rounded-lg shadow-sm border border-slate-100 p-2 h-20 w-20">
-              <img src={displayLogo} alt="Logo" className="max-h-full max-w-full object-contain" />
+              <img src={displayLogo} alt="Logo" className="max-h-full max-w-full object-contain"
+                onError={e => { (e.target as HTMLImageElement).src = RMA_LOGO_URL; }} />
             </div>
 
             <div className={`flex-1 min-w-0 ${rtl ? 'text-right' : ''}`}>
@@ -180,14 +182,14 @@ const trolleyTypeOptions = [
 
       <FormSection title={tr.secSpecs} icon={<Cpu size={16} />} rtl={rtl}>
         <Field label={tr.manufacturer}       type="text"   value={val('manufacturer')}      onChange={set('manufacturer')}      rtl={rtl} placeholder="e.g. Liebherr / Potain / Comansa" />
-        <Field label={tr.serialNumber}       type="text"   value={val('serialNumber')}      onChange={set('serialNumber')}      rtl={rtl} placeholder="e.g. 12345" />
-        <Field label={tr.craneModelField}    type="text"   value={val('craneModel')}        onChange={set('craneModel')}        required rtl={rtl} placeholder="e.g. 132 EC-H 8" />
+        <Field label={tr.serialNumber}       type="text"   value={val('serialNumber')}      onChange={set('serialNumber')}      rtl={rtl} placeholder="לדוגמה: 12345" />
+        <Field label={tr.craneModelField}    type="text"   value={val('craneModel')}        onChange={set('craneModel')}        required rtl={rtl} placeholder="לדוגמה: MDT219 J60" />
         <Field label={tr.manufacturingYear}  type="number" value={val('manufacturingYear')}  onChange={set('manufacturingYear')}  required rtl={rtl} placeholder="2021" />
         <Field label={tr.jibLength}          type="number" value={val('jibLength')}          onChange={set('jibLength')}          rtl={rtl} unit="m" placeholder="60" />
         <Field label={tr.freestandingHeight} type="number" value={val('freestandingHeight')} onChange={set('freestandingHeight')} rtl={rtl} unit="m" placeholder="45" />
         <Field label={tr.maxLoadCapacity}    type="number" value={val('maxLoadCapacity')}    onChange={set('maxLoadCapacity')}    rtl={rtl} unit="t" placeholder="8" />
         <Field label={tr.tipLoadCapacity}    type="number" value={val('tipLoadCapacity')}    onChange={set('tipLoadCapacity')}    rtl={rtl} unit="t" placeholder="2.3" />
-        <Field label={tr.cabinType}          type="text"   value={val('cabinType')}          onChange={set('cabinType')}          rtl={rtl} placeholder={rtl ? 'טקסט חופשי, לדוגמה: Ultra View' : 'free text, e.g. Ultra View'} />
+        <Field label={tr.cabinType}          type="text"   value={val('cabinType')}          onChange={set('cabinType')}          rtl={rtl} placeholder="טקסט חופשי, לדוגמה: Ultra View" />
         <Field label={tr.craneCondition}     type="select" value={val('craneCondition')}     onChange={set('craneCondition')}     rtl={rtl} options={conditionOptions} placeholder={tr.selectPlaceholder} />
 
         <div className="md:col-span-2">
@@ -211,23 +213,19 @@ const trolleyTypeOptions = [
       </FormSection>
 
       <FormSection title={tr.secWinches} icon={<Cog size={16} />} rtl={rtl}>
-        <Field label={tr.hoistWinch}     type="text" value={val('hoistWinch')}     onChange={set('hoistWinch')}     rtl={rtl} placeholder={rtl ? 'לדוגמה: 65 LVF 100' : 'e.g. 65 LVF 100'} />
-        <Field label={tr.trolleyWinch}     type="text"   value={val('trolleyWinch')}   onChange={set('trolleyWinch')}   rtl={rtl} placeholder={rtl ? 'לדוגמה: 11 KW' : 'e.g. 11 KW'} />
-        <Field label={tr.trolleyTypeField} type="combo"  value={val('trolleyType')}   onChange={set('trolleyType')}   rtl={rtl} options={trolleyTypeOptions} placeholder={tr.selectPlaceholder} />
-        <Field label={tr.certifications}   type="text"   value={val('certifications')} onChange={set('certifications')} span rtl={rtl} placeholder="CE, ISO 9001..." />
+        <Field label={tr.hoistWinch}       type="text"  value={val('hoistWinch')}     onChange={set('hoistWinch')}     rtl={rtl} placeholder="e.g. 65 LVF 100" />
+        <Field label={tr.trolleyWinch}     type="text"  value={val('trolleyWinch')}   onChange={set('trolleyWinch')}   rtl={rtl} placeholder="לדוגמה: 11 KW" />
+        <Field label={tr.trolleyTypeField} type="combo" value={val('trolleyType')}    onChange={set('trolleyType')}    rtl={rtl} options={trolleyTypeOptions} placeholder={tr.selectPlaceholder} />
+        <Field label={tr.certifications}   type="text"  value={val('certifications')} onChange={set('certifications')} span rtl={rtl} placeholder="לדוגמה: CE, ISO 9001..." />
       </FormSection>
 
       <FormSection title={tr.secCondition} icon={<Package size={16} />} rtl={rtl}>
-        <Field label={tr.deliveryTerms}     type="select"   value={val('deliveryTerms')} onChange={set('deliveryTerms')} rtl={rtl} options={incotermsOptions} placeholder={tr.selectPlaceholder} />
-        <Field label={tr.deliveryTimeField} type="text"     value={val('deliveryTime')}  onChange={set('deliveryTime')}  rtl={rtl} placeholder="6-8 weeks after payment" />
-        <Field label={tr.warrantyField}     type="text"     value={val('warranty')}      onChange={set('warranty')}      rtl={rtl} placeholder="12 months" />
+        <Field label={tr.deliveryTerms}      type="select"   value={val('deliveryTerms')} onChange={set('deliveryTerms')} rtl={rtl} options={incotermsOptions} placeholder={tr.selectPlaceholder} />
+        <Field label={tr.deliveryTimeField}  type="text"     value={val('deliveryTime')}  onChange={set('deliveryTime')}  rtl={rtl} placeholder="לדוגמה: 6-8 שבועות מרגע התשלום" />
+        <Field label={tr.warrantyField}      type="text"     value={val('warranty')}      onChange={set('warranty')}      rtl={rtl} placeholder="לדוגמה: 12 חודשים" />
         <div />
         <Field label={tr.includedComponents} type="textarea" value={val('includedComponents')} onChange={set('includedComponents')} rtl={rtl} span rows={3} />
         <Field label={tr.excludedComponents} type="textarea" value={val('excludedComponents')} onChange={set('excludedComponents')} rtl={rtl} span rows={2} />
-      </FormSection>
-
-      <FormSection title={tr.secNotes} icon={<FileText size={16} />} rtl={rtl}>
-        <Field label={tr.additionalNotes} type="textarea" value={val('notes')} onChange={set('notes')} rtl={rtl} span rows={4} />
       </FormSection>
 
       <FormSection title={tr.secPricing} icon={<DollarSign size={16} />} rtl={rtl}>
@@ -236,8 +234,46 @@ const trolleyTypeOptions = [
         <Field label={tr.quantity}          type="number"   value={val('quantity')}        onChange={set('quantity')}        rtl={rtl} placeholder="1" />
         <Field label={tr.discountPct}       type="number"   value={val('discountPercent')} onChange={set('discountPercent')} rtl={rtl} unit="%" placeholder="0" />
         <Field label={tr.shippingCost}      type="number"   value={val('shippingCost')}    onChange={set('shippingCost')}    rtl={rtl} placeholder="0" />
-        <Field label={tr.taxVat}            type="number"   value={val('taxPercent')}      onChange={set('taxPercent')}      rtl={rtl} unit="%" placeholder="18" />
+        <Field label={tr.portPriceField}    type="number"   value={val('portPrice')}       onChange={set('portPrice')}       rtl={rtl} placeholder="0" />
         <Field label={tr.paymentTermsField} type="textarea" value={val('paymentTerms')}    onChange={set('paymentTerms')}    rtl={rtl} span rows={2} />
+      </FormSection>
+
+      <FormSection title={tr.secNotes} icon={<FileText size={16} />} rtl={rtl}>
+        <div className="col-span-2 space-y-2">
+          {(data.notes ? data.notes.split('\n').filter(l => l.trim()) : []).map((item, i, arr) => (
+            <div key={i} className={`flex items-center gap-2 ${rtl ? 'flex-row-reverse' : ''}`}>
+              <span className="text-xs font-bold text-amber-700 w-5 text-center flex-shrink-0">{i + 1}.</span>
+              <input
+                value={item.replace(/^\*\s*/, '')}
+                onChange={e => {
+                  const lines = data.notes.split('\n').filter(l => l.trim());
+                  lines[i] = e.target.value;
+                  onChange({ ...data, notes: lines.join('\n') });
+                }}
+                dir={rtl ? 'rtl' : 'ltr'}
+                className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-300"
+                style={{ background: '#fffdf5' }}
+                placeholder={rtl ? `הערה ${i + 1}...` : `Note ${i + 1}...`}
+              />
+              <button
+                onClick={() => {
+                  const lines = data.notes.split('\n').filter(l => l.trim());
+                  lines.splice(i, 1);
+                  onChange({ ...data, notes: lines.join('\n') });
+                }}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition"
+              >
+                <Trash2 size={13} />
+              </button>
+            </div>
+          ))}
+          <button
+            onClick={() => onChange({ ...data, notes: (data.notes ? data.notes + '\n' : '') + ' ' })}
+            className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg border border-dashed border-amber-300 text-amber-700 hover:bg-amber-50 transition ${rtl ? 'flex-row-reverse' : ''}`}
+          >
+            <Plus size={13} /> {rtl ? '+ הוסף הערה' : '+ Add note'}
+          </button>
+        </div>
       </FormSection>
 
       <FormSection title={tr.secOtherExpenses} icon={<DollarSign size={16} />} rtl={rtl}>
@@ -246,8 +282,11 @@ const trolleyTypeOptions = [
             <OtherExpensesSelector
               items={data.otherExpenses ?? []}
               onChange={items => onChange({ ...data, otherExpenses: items })}
+              included={data.includeExpensesInTotal ?? false}
+              onToggleIncluded={v => onChange({ ...data, includeExpensesInTotal: v })}
               tr={tr}
               rtl={rtl}
+              defaultCurrency={data.currency}
             />
           </div>
         </div>

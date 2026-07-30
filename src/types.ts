@@ -6,6 +6,7 @@ export interface MastSection {
 export interface OtherExpense {
   description: string;
   amount: string;
+  currency?: string;
 }
 
 export interface QuotationData {
@@ -56,6 +57,8 @@ export interface QuotationData {
   // Notes
   notes: string;
 
+  quoteValidity: string;
+
   // Section 4 - Pricing
   currency: string;
   unitPrice: string;
@@ -63,10 +66,12 @@ export interface QuotationData {
   discountPercent: string;
   taxPercent: string;
   shippingCost: string;
+  portPrice: string;
   paymentTerms: string;
 
-  // Section 5 - Other Expenses (dynamic, each adds to total)
+  // Section 5 - Other Expenses (optional - included in total only if flag is set)
   otherExpenses: OtherExpense[];
+  includeExpensesInTotal: boolean;
 }
 
 export const defaultData: QuotationData = {
@@ -111,13 +116,17 @@ export const defaultData: QuotationData = {
 
   notes: '',
 
+  quoteValidity: '30 יום',
+
   currency: 'EUR',
   unitPrice: '211000',
   quantity: '1',
   discountPercent: '0',
-  taxPercent: '18',
+  taxPercent: '0',
   shippingCost: '25000',
+  portPrice: '',
   paymentTerms: '',
 
   otherExpenses: [],
+  includeExpensesInTotal: false,
 };
